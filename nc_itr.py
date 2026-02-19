@@ -122,7 +122,55 @@ def backproject_ray(correction, S, Pdet, residual, num_samples=300):
         if 0 <= ix < Nx and 0 <= iy < Ny and 0 <= iz < Nz:
             correction[ix, iy, iz] += residual * weight
 
+#SIRT loop
+lambda_relax = 0.03
+n_iter = 20
 
+for it in range(n_iter):
+
+    correction = np.zeros_like(volume)
+
+    for p_idx in range(len(projections)):
+
+        angle = angles_deg[p_idx]
+        S, D, u, v = compute_geometry(angle)
+
+        proj_meas = projections[p_idx]
+        proj_sim = np.zeros_like(proj_meas)
+
+        for i in range(350):
+            for j in range(350):
+
+                Pdet = (
+                    D
+                    + (i - 175) * u
+                    + (j - 175) * v
+                )
+
+                proj_sim[i, j] = ray_integral(volume, S, Pdet)
+
+        residual = proj_meas - proj_sim
+
+        for i in range(350):
+            for j in range(350):
+
+                Pdet = (
+                    D
+                    + (i - 175) * u
+                    + (j - 175) * v
+                )
+
+                backproject_ray(
+                    correction,
+                    S,
+                    Pdet,
+                    residual[i, j]
+                )
+
+    volume += lambda_relax * correction
+    volume = np.clip(volume, 0, None)
+
+    print("Iteration", it, "complete")
 
 
 
