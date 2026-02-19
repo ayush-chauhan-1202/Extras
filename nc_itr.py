@@ -5,6 +5,17 @@ import imageio.v3 as iio
 import glob
 import os
 
+def intensity_to_attenuation(proj):
+    # Estimate I0 from brightest pixels
+    I0 = np.percentile(proj, 99.9)
+
+    eps = 1e-6
+    proj_norm = proj / (I0 + eps)
+
+    proj_norm = np.clip(proj_norm, eps, 1.0)
+
+    return -np.log(proj_norm)
+
 def load_projections(folder):
     files = sorted(glob.glob(os.path.join(folder, "z*.tif")))
 
@@ -24,7 +35,14 @@ def load_projections(folder):
 
     return projections, angles_deg
 
-projections, angles_deg = load_projections("data")
+projections_raw, angles_deg = load_projections("data")
+
+projections = np.zeros_like(projections_raw)
+
+for i in range(len(projections_raw)):
+    projections[i] = intensity_to_attenuation(projections_raw[i])
+
+print(projections.min(), projections.max())
 
 
 
