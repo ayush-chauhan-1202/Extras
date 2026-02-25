@@ -1,0 +1,8 @@
+torch>=2.2.0
+torchvision>=0.17.0
+pillow>=10.0
+numpy>=1.24
+matplotlib>=3.7
+scipy>=1.11
+scikit-image>=0.21
+clean-fid>=0.1.35  # optional but recommended for FID
