@@ -492,7 +492,7 @@ def train(args):
     # Optimizers (separate LR for mapping network via param groups)
     g_params = [
         {'params': G.mapping.parameters(), 'lr': args.lr * 0.01},
-        {'params': list(G.blocks.parameters()) + list(G.const.parameters()) +
+        {'params': list(G.blocks.parameters()) + [G.const] +
                    list(G.to_rgb.parameters()) + [G.rgb_bias], 'lr': args.lr}
     ]
     G_opt = torch.optim.Adam(g_params, betas=(0.0, 0.99), eps=1e-8)
