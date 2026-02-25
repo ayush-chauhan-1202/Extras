@@ -298,21 +298,21 @@ class Discriminator(nn.Module):
         self.blocks.append(DiscBlock(in_ch, channels[4], downsample=True))
         in_ch = channels[4]
 
-        self.final_block = nn.Sequential(
+        self.final_conv = nn.Sequential(
             MinibatchStdDev(),
             nn.Conv2d(in_ch + 1, in_ch, 3, padding=1),
             nn.LeakyReLU(0.2),
-            nn.Conv2d(in_ch, in_ch, 4),   # 4x4 -> 1x1
-            nn.LeakyReLU(0.2),
+            nn.AdaptiveAvgPool2d(1),   # collapses any spatial size to 1x1
             nn.Flatten(),
-            nn.Linear(in_ch, 1)
         )
+        self.final_linear = nn.Linear(in_ch, 1)
 
     def forward(self, x):
         x = self.act(self.from_rgb(x))
         for block in self.blocks:
             x = block(x)
-        return self.final_block(x)
+        x = self.final_conv(x)
+        return self.final_linear(x)
 
 
 # ─────────────────────────────────────────────
