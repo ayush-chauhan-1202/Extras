@@ -289,16 +289,20 @@ class Discriminator(nn.Module):
 
         self.blocks = nn.ModuleList()
         in_ch = channels[img_size]
-        for i in range(log_size - 2, 1, -1):
+        # Downsample from img_size down to 8x8; final_block handles 4x4
+        for i in range(log_size - 2, 2, -1):
             out_ch = channels[2 ** i]
             self.blocks.append(DiscBlock(in_ch, out_ch, downsample=True))
             in_ch = out_ch
+        # One final downsample block: 8x8 -> 4x4
+        self.blocks.append(DiscBlock(in_ch, channels[4], downsample=True))
+        in_ch = channels[4]
 
         self.final_block = nn.Sequential(
             MinibatchStdDev(),
             nn.Conv2d(in_ch + 1, in_ch, 3, padding=1),
             nn.LeakyReLU(0.2),
-            nn.Conv2d(in_ch, in_ch, 4),
+            nn.Conv2d(in_ch, in_ch, 4),   # 4x4 -> 1x1
             nn.LeakyReLU(0.2),
             nn.Flatten(),
             nn.Linear(in_ch, 1)
